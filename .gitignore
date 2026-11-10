@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 构建产物
+dist/
+build/work/
+build/*.spec
+*.exe
+
+# 本地配置与日志
+*.log
+*.bak
+*.bak[0-9]
+*.part
+ui.json
+
+# 工具数据
+.workbuddy-ai/
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,8 @@
+# 运行界面：仅需标准库（tkinter / zipfile / ctypes）
+# 打包
+pyinstaller>=6.0
+pywin32>=306          # 仅 .xlsb 转换（调用 Excel/WPS）需要
+
+# 仅测试脚本需要
+openpyxl>=3.1
+pillow>=10.0          # 截图校验用

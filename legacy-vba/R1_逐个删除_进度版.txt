@@ -1,0 +1,160 @@
+﻿Option Explicit
+
+Sub DeleteAllNames_Professional_V2()
+
+
+Dim wb As Workbook
+
+Dim TotalNames As Long
+Dim DeletedCount As Long
+Dim RemainingCount As Long
+
+Dim i As Long
+
+Dim StartTime As Double
+Dim Elapsed As Double
+
+Dim LastUpdate As Double
+Dim UpdateInterval As Double
+
+Dim CurrentRate As Double
+Dim RemainingSeconds As Double
+
+Dim CalcMode As Long
+
+Set wb = ThisWorkbook
+
+TotalNames = wb.Names.Count
+
+If TotalNames = 0 Then
+
+    MsgBox "当前工作簿没有名称。", vbInformation
+
+    Exit Sub
+
+End If
+
+' 基于你的实测速度：
+' 303,007 个名称 ≈ 4,260 秒
+Dim EstimatedSeconds As Double
+
+EstimatedSeconds = TotalNames / 71
+
+If MsgBox( _
+    "检测到名称数量：" & Format(TotalNames, "#,##0") & vbCrLf & _
+    "预计耗时：" & Format(EstimatedSeconds / 60, "0.0") & " 分钟" & vbCrLf & _
+    "开始时间：" & Format(Now, "yyyy-mm-dd hh:mm:ss") & vbCrLf & vbCrLf & _
+    "是否开始删除？", _
+    vbYesNo + vbQuestion, _
+    "名称清理工具") <> vbYes Then
+
+    Exit Sub
+
+End If
+
+UpdateInterval = 5
+
+StartTime = Timer
+LastUpdate = Timer
+
+With Application
+
+    CalcMode = .Calculation
+
+    .ScreenUpdating = False
+    .EnableEvents = False
+    .DisplayAlerts = False
+    .Calculation = xlCalculationManual
+
+End With
+
+DeletedCount = 0
+
+For i = TotalNames To 1 Step -1
+
+    On Error Resume Next
+
+    wb.Names(i).Delete
+
+    If Err.Number = 0 Then
+
+        DeletedCount = DeletedCount + 1
+
+    End If
+
+    Err.Clear
+
+    On Error GoTo 0
+
+    If Timer - LastUpdate >= UpdateInterval Then
+
+        Elapsed = Timer - StartTime
+
+        RemainingCount = TotalNames - DeletedCount
+
+        If Elapsed > 0 Then
+
+            CurrentRate = DeletedCount / Elapsed
+
+        Else
+
+            CurrentRate = 0
+
+        End If
+
+        If CurrentRate > 0 Then
+
+            RemainingSeconds = RemainingCount / CurrentRate
+
+        Else
+
+            RemainingSeconds = 0
+
+        End If
+
+        Application.StatusBar = _
+            "名称清理中 | " & _
+            Format(DeletedCount, "#,##0") & "/" & Format(TotalNames, "#,##0") & _
+            " | " & Format(DeletedCount / TotalNames, "0.0%") & _
+            " | 速度: " & Format(CurrentRate, "0.0") & " 个/秒" & _
+            " | 已耗时: " & Format(Elapsed / 60, "0.0") & " 分钟" & _
+            " | 剩余: " & Format(RemainingSeconds / 60, "0.0") & " 分钟" & _
+            " | 完成时间: " & Format(Now + RemainingSeconds / 86400, "hh:mm:ss")
+
+        DoEvents
+
+        LastUpdate = Timer
+
+    End If
+
+Next i
+
+Elapsed = Timer - StartTime
+
+RemainingCount = wb.Names.Count
+
+wb.Save
+
+With Application
+
+    .StatusBar = False
+
+    .Calculation = CalcMode
+    .DisplayAlerts = True
+    .EnableEvents = True
+    .ScreenUpdating = True
+
+End With
+
+MsgBox _
+    "删除完成！" & vbCrLf & vbCrLf & _
+    "原名称数：" & Format(TotalNames, "#,##0") & vbCrLf & _
+    "已删除：" & Format(DeletedCount, "#,##0") & vbCrLf & _
+    "剩余：" & Format(RemainingCount, "#,##0") & vbCrLf & _
+    "总耗时：" & Format(Elapsed / 60, "0.0") & " 分钟" & vbCrLf & _
+    "平均速度：" & Format(DeletedCount / Elapsed, "0.0") & " 个/秒", _
+    vbInformation, _
+    "完成"
+
+
+End Sub

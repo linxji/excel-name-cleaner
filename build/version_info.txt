@@ -1,0 +1,28 @@
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 4, 0, 0),
+    prodvers=(1, 4, 0, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo([
+      StringTable('080404B0', [
+        StringStruct('CompanyName', 'Opera-Jin'),
+        StringStruct('FileDescription', 'Excel 名称清理工具'),
+        StringStruct('FileVersion', '1.4.0.0'),
+        StringStruct('InternalName', 'ExcelNameCleaner'),
+        StringStruct('LegalCopyright', '© 2026 Opera-Jin. All rights reserved.'),
+        StringStruct('OriginalFilename', 'Excel名称清理工具.exe'),
+        StringStruct('ProductName', 'Excel 名称清理工具'),
+        StringStruct('ProductVersion', '1.4.0.0'),
+        StringStruct('Comments', 'Developer: Opera-Jin')
+      ])
+    ]),
+    VarFileInfo([VarStruct('Translation', [2052, 1200])])
+  ]
+)

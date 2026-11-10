@@ -1,0 +1,108 @@
+﻿Option Explicit
+
+Sub StartDeleteAllNames()
+    Dim totalNames As Long
+    Dim resp As VbMsgBoxResult
+    
+    On Error Resume Next
+    totalNames = ThisWorkbook.Names.Count
+    On Error GoTo 0
+    
+    resp = MsgBox("此工作簿一共有 " & totalNames & " 个命名。" & vbCrLf & _
+                  "是否继续删除所有这些命名？", _
+                  vbYesNo + vbQuestion, "确认操作")
+    If resp <> vbYes Then
+        MsgBox "操作已取消。", vbInformation
+        Exit Sub
+    End If
+    
+    Call DeleteAllNames_Improved(totalNames)
+End Sub
+
+Sub DeleteAllNames_Improved(ByVal originalCount As Long)
+    Dim batchSize As Long
+    Dim deletedCount As Long
+    Dim failStreak As Long
+    Dim maxFailStreak As Long
+    Dim startTime As Double
+    Dim currentCount As Long
+    Dim i As Long
+    Dim nm As Name
+    Dim thisBatchDeleted As Long
+    Dim batchNumber As Long
+    Dim maxBatches As Long
+
+    ' ===== 参数设置 =====
+    batchSize = 500     ' 每批删除多少个命名。数字可根据你电脑性能调整
+    maxFailStreak = 5   ' 连续多少批次删除失败就停止
+    maxBatches = 1000  ' 为防止意外无限循环，设置一个批次数上限
+
+    deletedCount = 0
+    failStreak = 0
+    batchNumber = 0
+
+    Application.ScreenUpdating = False
+    Application.EnableEvents = False
+    Application.Calculation = xlCalculationManual
+
+    startTime = Timer
+
+    Do
+        batchNumber = batchNumber + 1
+        thisBatchDeleted = 0
+        
+        currentCount = ThisWorkbook.Names.Count
+        ' 倒序删除一批
+        For i = currentCount To 1 Step -1
+            If thisBatchDeleted >= batchSize Then Exit For
+            On Error Resume Next
+            Set nm = ThisWorkbook.Names(i)
+            Err.Clear
+            nm.Delete
+            If Err.Number = 0 Then
+                thisBatchDeleted = thisBatchDeleted + 1
+                deletedCount = deletedCount + 1
+            End If
+            On Error GoTo 0
+        Next i
+
+        ' 保存、释放资源
+        ThisWorkbook.Save
+        DoEvents
+
+        ' 判断这一批是否成功
+        If thisBatchDeleted = 0 Then
+            failStreak = failStreak + 1
+        Else
+            failStreak = 0
+        End If
+
+        ' 显示状态在状态栏（可见进度）
+        Application.StatusBar = "删除命名中 — 批次 " & batchNumber & _
+                               "，已删除 " & deletedCount & " / " & originalCount & _
+                               "，剩余 ≈ " & ThisWorkbook.Names.Count
+
+        ' 停止条件判断
+        If failStreak >= maxFailStreak Then Exit Do
+        If batchNumber >= maxBatches Then Exit Do
+        If deletedCount >= originalCount Then Exit Do
+
+    Loop While ThisWorkbook.Names.Count > 0
+
+    ' 恢复 Excel 原状态
+    Application.StatusBar = False
+    Application.Calculation = xlCalculationAutomatic
+    Application.EnableEvents = True
+    Application.ScreenUpdating = True
+
+    Dim elapsed As Double
+    elapsed = Timer - startTime
+
+    ' 最终结果提示
+    MsgBox "操作完成！" & vbCrLf & _
+           "原有命名数: " & originalCount & vbCrLf & _
+           "已删除命名数: " & deletedCount & vbCrLf & _
+           "剩余命名数: " & ThisWorkbook.Names.Count & vbCrLf & _
+           "耗时: " & Format(elapsed, "0.00") & " 秒", _
+           vbInformation, "删除结果"
+End Sub
